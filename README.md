@@ -1,6 +1,2 @@
-# \# Demo
-
-# !\[demo](./image/demo.png) 
-
-# 
-
+# Demo
+![demo](./image/demo.png)
