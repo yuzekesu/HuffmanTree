@@ -1,0 +1,133 @@
+#pragma once
+#include <optional>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
+
+template <typename Code, typename Symbol, typename Length>
+class HuffmanTree {
+public:
+	HuffmanTree() = delete;
+	HuffmanTree(const std::vector<Symbol>& symbols, const std::vector<Length>& lengths);
+	Symbol Decode(Code code);
+private:
+	size_t How_Many(const std::vector<Length>& lengths, Length ref);
+	std::vector<std::optional<Code>> Generate_Canoncial_Huffman_Code(const std::vector<Length>& lengths);
+	void Construct_Huffman_Tree(const std::vector<std::optional<Code>>& codes, const std::vector<Symbol>& symbols);
+	Code Generate_The_First_Canoncial_Huffman_Code_With_This_Length(Code already_generated, size_t how_many_was_it);
+	Length Find_Bigger_Any(const std::vector<Length>& lengths, Length anchor);
+	Length Find_Lowest(const std::vector<Length>& lengths, Length bigger_than_this);
+private:
+	std::unordered_map<Code, Symbol> m_tree;
+};
+
+//*******************************************************************
+// Member Functions
+//*******************************************************************
+
+/// <summary>
+/// Canoncial huffman tree.
+/// </summary>
+/// <param name="lengths">: huffman code length</param>
+template<typename Code, typename Symbol, typename Length>
+inline HuffmanTree<Code, Symbol, Length>::HuffmanTree(const std::vector<Symbol>& symbols, const std::vector<Length>& lengths) {
+	std::vector<std::optional<Code>> codes = Generate_Canoncial_Huffman_Code(lengths);
+	Construct_Huffman_Tree(codes, symbols);
+}
+/// <summary>
+/// Decode the code using unordered_map.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline Symbol HuffmanTree<Code, Symbol, Length>::Decode(Code code) {
+	auto search = m_tree.find(code);
+	if (search == m_tree.end()) {
+		throw std::runtime_error("Invalid Huffman code");
+	}
+	return search->second;
+}
+/// <summary>
+/// How many huffman code that share the same length.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline size_t HuffmanTree<Code, Symbol, Length>::How_Many(const std::vector<Length>& lengths, Length ref) {
+	size_t counter = 0u;
+	for (size_t i = 0u; i < lengths.size(); i++) {
+		if (lengths[i] == ref) {
+			counter++;
+		}
+	}
+	return counter;
+}
+/// <summary>
+/// This starts with the huffman code that has the lowest length && first encountered in the Vector.
+/// There is an algorithm this method follows here.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline std::vector<std::optional<Code>> HuffmanTree<Code, Symbol, Length>::Generate_Canoncial_Huffman_Code(const std::vector<Length>& lengths) {
+	std::vector<std::optional<Code>> codes(lengths.size());
+	Length the_length = 0u;
+	Code the_code = 0u;
+	size_t how_many = 0u;
+	do {
+		the_length = Find_Lowest(lengths, the_length);
+		if (the_length != 0u) {
+			the_code = Generate_The_First_Canoncial_Huffman_Code_With_This_Length(the_code, how_many);
+			how_many = How_Many(lengths, the_length);
+			size_t counter = 0u;
+			for (size_t i = 0u; i < lengths.size(); i++) {
+				if (lengths[i] == the_length) {
+					codes[i] = the_code + counter;
+					counter++;
+				}
+			}
+		}
+	} while (the_length != 0u);
+	return codes;
+}
+/// <summary>
+/// No calculations here. Just combines the result that other member function did.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline void HuffmanTree<Code, Symbol, Length>::Construct_Huffman_Tree(const std::vector<std::optional<Code>>& codes, const std::vector<Symbol>& symbols) {
+	for (size_t i = 0u; i < codes.size(); i++) {
+		if (codes[i] != std::nullopt) {
+			m_tree[*(codes[i])] = symbols[i];
+		}
+	}
+}
+/// <summary>
+/// This this as array, you need to know what index was the last chunk, and how big was the last chunk.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline Code HuffmanTree<Code, Symbol, Length>::Generate_The_First_Canoncial_Huffman_Code_With_This_Length(Code already_generated, size_t how_many_was_it) {
+	return (already_generated + how_many_was_it) << 1;
+}
+/// <summary>
+/// Returns the first Length encountered that bigger then the Anchor in a iteration.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline Length HuffmanTree<Code, Symbol, Length>::Find_Bigger_Any(const std::vector<Length>& lengths, Length anchor) {
+	Length bigger = 0u;
+	for (size_t i = 0u; i < lengths.size(); i++) {
+		if (lengths[i] > anchor) {
+			bigger = lengths[i];
+			break;
+		}
+	}
+	return bigger;
+}
+/// <summary>
+/// Find_The_Lowest with lower bound.
+/// </summary>
+template<typename Code, typename Symbol, typename Length>
+inline Length HuffmanTree<Code, Symbol, Length>::Find_Lowest(const std::vector<Length>& lengths, Length bigger_than_this) {
+	Length lowest = Find_Bigger_Any(lengths, bigger_than_this);
+	for (size_t i = 0u; i < lengths.size(); i++) {
+		if (lengths[i] < lowest) {
+			if (lengths[i] > bigger_than_this) {
+				lowest = lengths[i];
+			}
+		}
+	}
+	return lowest;
+}
