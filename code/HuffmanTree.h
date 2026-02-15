@@ -15,7 +15,7 @@ class HuffmanTree {
 public:
 	HuffmanTree() = delete;
 	HuffmanTree(const std::vector<Symbol>& symbols, const std::vector<Length>& lengths);
-	Symbol Decode(Code code);
+	std::optional<Symbol> Decode(Code code);
 private:
 	size_t How_Many(const std::vector<Length>& lengths, Length ref);
 	std::vector<std::optional<Code>> Generate_Canoncial_Huffman_Code(const std::vector<Length>& lengths);
@@ -44,12 +44,12 @@ inline HuffmanTree<Code, Symbol, Length>::HuffmanTree(const std::vector<Symbol>&
 /// Decode the code using unordered_map.
 /// </summary>
 template<typename Code, typename Symbol, typename Length>
-inline Symbol HuffmanTree<Code, Symbol, Length>::Decode(Code code) {
+inline std::optional<Symbol> HuffmanTree<Code, Symbol, Length>::Decode(Code code) {
 	auto search = m_tree.find(code);
 	if (search == m_tree.end()) {
-		throw std::runtime_error("Invalid Huffman code");
+		return std::nullopt;
 	}
-	return search->second;
+	return std::optional<Symbol>(search->second);
 }
 /// <summary>
 /// How many huffman code that share the same length.
