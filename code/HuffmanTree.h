@@ -26,13 +26,13 @@ public:
 	HuffmanTree() = delete;
 	HuffmanTree(const std::vector<Symbol>& symbols, const std::vector<Length>& lengths);
 	std::optional<Symbol> Decode(Code code, Length length);
+	Code Reverse_Bits(Code code, Length code_length);
 	Length Minimum_Length();
 private:
 	size_t How_Many(const std::vector<Length>& lengths, Length ref);
 	std::vector<std::optional<Code>> Generate_Canoncial_Huffman_Code(const std::vector<Length>& lengths);
 	void Construct_Huffman_Tree(const std::vector<std::optional<Code>>& codes, const std::vector<Symbol>& symbols, const std::vector<Length>& lengths);
 	Code Generate_The_First_Canoncial_Huffman_Code_With_This_Length(Code already_generated, size_t how_many_was_it);
-	Code Reverse_Bits(Code code, Length code_length);
 	Length Find_Bigger_Any(const std::vector<Length>& lengths, Length anchor);
 	Length Find_Lowest(const std::vector<Length>& lengths, Length bigger_than_this);
 private:
@@ -124,7 +124,7 @@ inline void HuffmanTree<Code, Symbol, Length>::Construct_Huffman_Tree(const std:
 	for (size_t i = 0u; i < codes.size(); i++) {
 		if (codes[i] != std::nullopt) {
 			HuffmanCode huffman_code;
-			huffman_code.code = Reverse_Bits(*(codes[i]), lengths[i]);
+			huffman_code.code = *(codes[i]), lengths[i];
 			// huffman_code.code = *(codes[i]);
 			huffman_code.length = lengths[i];
 			m_tree[huffman_code] = symbols[i];
